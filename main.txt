@@ -1,0 +1,325 @@
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.5s';
+            setTimeout(function() { alert.remove(); }, 500);
+        }, 4000);
+    });
+
+    const forms = document.querySelectorAll('form[data-validate]');
+    forms.forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const required = form.querySelectorAll('[required]');
+            let valid = true;
+            required.forEach(function(field) {
+                if (!field.value.trim()) {
+                    field.style.borderColor = '#ef4444';
+                    valid = false;
+                } else {
+                    field.style.borderColor = '#d1d5db';
+                }
+            });
+            if (!valid) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+            }
+        });
+    });
+});
+
+/* ============================================
+   MOBILE DRAWER
+   ============================================ */
+(function() {
+  const toggle = document.querySelector('.mobile-toggle');
+  const drawer = document.querySelector('.mobile-drawer');
+  const overlay = document.querySelector('.mobile-drawer-overlay');
+  const closeBtn = document.querySelector('.mobile-close');
+
+  if (!toggle || !drawer) return;
+
+  function openDrawer() {
+    drawer.classList.add('is-open');
+    drawer.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('menu-open');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove('is-open');
+    drawer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('menu-open');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  toggle.addEventListener('click', () => {
+    if (drawer.classList.contains('is-open')) closeDrawer();
+    else openDrawer();
+  });
+
+  if (overlay) overlay.addEventListener('click', closeDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+
+  // Close on ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drawer.classList.contains('is-open')) {
+      closeDrawer();
+    }
+  });
+
+  // Close when a link inside the drawer is clicked
+  drawer.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      // small delay so the navigation starts before closing
+      setTimeout(closeDrawer, 50);
+    });
+  });
+})();
+
+/* ============================================
+   PREVIEW MODAL
+   ============================================ */
+(function() {
+  const modal = document.getElementById('previewModal');
+  if (!modal) return;
+
+  const iframe = document.getElementById('previewIframe');
+  const titleEl = modal.querySelector('.preview-modal-title');
+  const openBtns = document.querySelectorAll('[data-preview]');
+  const closeEls = modal.querySelectorAll('[data-preview-close]');
+
+  // Convert any Google Drive URL to the embeddable /preview URL
+  function toEmbedUrl(url) {
+    // Match /d/FILE_ID/ or ?id=FILE_ID
+    let id = null;
+    let m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (m) id = m[1];
+    else {
+      m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (m) id = m[1];
+    }
+    if (id) return 'https://drive.google.com/file/d/' + id + '/preview';
+    // Fallback: use as-is
+    return url;
+  }
+
+  function openModal(url, title) {
+    if (titleEl && title) titleEl.textContent = 'Preview: ' + title;
+    iframe.src = toEmbedUrl(url);
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('menu-open');
+  }
+
+  function closeModal() {
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('menu-open');
+    // Clear the iframe so the video/PDF stops loading
+    setTimeout(() => { iframe.src = ''; }, 200);
+  }
+
+  openBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      openModal(btn.dataset.preview, btn.dataset.title);
+    });
+  });
+
+  closeEls.forEach(el => {
+    el.addEventListener('click', closeModal);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+      closeModal();
+    }
+  });
+})();
+
+/* ============================================
+   ALL BOOKS — VIEW TOGGLE
+   ============================================ */
+(function() {
+  const grid = document.getElementById('resultsGrid');
+  if (!grid) return;
+
+  const btns = document.querySelectorAll('.view-btn');
+  const saved = localStorage.getItem('booksView') || 'grid';
+  applyView(saved);
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyView(btn.dataset.view);
+      localStorage.setItem('booksView', btn.dataset.view);
+    });
+  });
+
+  function applyView(view) {
+    if (view === 'list') grid.classList.add('list-view');
+    else grid.classList.remove('list-view');
+
+    btns.forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  }
+})();
+
+/* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+(function() {
+  // Ensure the container exists
+  let container = document.querySelector('.toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'toast-container';
+    container.setAttribute('aria-live', 'polite');
+    container.setAttribute('aria-atomic', 'true');
+    document.body.appendChild(container);
+  }
+
+  const ICONS = {
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
+    info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
+  };
+
+  function showToast(message, options) {
+    options = options || {};
+    const type = options.type || 'info';
+    const title = options.title || '';
+    const duration = typeof options.duration === 'number' ? options.duration : 4000;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    toast.setAttribute('role', 'status');
+
+    const iconHtml = ICONS[type] || ICONS.info;
+
+    toast.innerHTML =
+      '<div class="toast-icon">' + iconHtml + '</div>' +
+      '<div class="toast-body">' +
+        (title ? '<div class="toast-title">' + escapeHtml(title) + '</div>' : '') +
+        '<div class="toast-message">' + escapeHtml(message) + '</div>' +
+      '</div>' +
+      '<button type="button" class="toast-close" aria-label="Close">✕</button>' +
+      '<div class="toast-progress" style="animation-duration:' + duration + 'ms;"></div>';
+
+    container.appendChild(toast);
+
+    // Trigger slide-in on next frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => toast.classList.add('is-visible'));
+    });
+
+    let timeoutId = null;
+    function dismiss() {
+      if (timeoutId) clearTimeout(timeoutId);
+      toast.classList.remove('is-visible');
+      toast.classList.add('is-leaving');
+      setTimeout(() => toast.remove(), 300);
+    }
+
+    toast.querySelector('.toast-close').addEventListener('click', dismiss);
+
+    if (duration > 0) {
+      timeoutId = setTimeout(dismiss, duration);
+    }
+
+    return { dismiss: dismiss };
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"')
+      .replace(/'/g, ''');
+  }
+
+  // Expose globally
+  window.showToast = showToast;
+})();
+
+/* ============================================
+   WELCOME BAR DISMISS & COPY
+   ============================================ */
+(function() {
+  const bar = document.getElementById('welcomeBar');
+  if (!bar) return;
+
+  const STORAGE_KEY = 'welcomeBarDismissed';
+  const DISMISS_DAYS = 30;
+
+  // Check if dismissed recently
+  try {
+    const dismissedAt = localStorage.getItem(STORAGE_KEY);
+    if (dismissedAt) {
+      const daysAgo = (Date.now() - parseInt(dismissedAt, 10)) / (1000 * 60 * 60 * 24);
+      if (daysAgo < DISMISS_DAYS) {
+        return; // do not show
+      }
+    }
+  } catch (e) {
+    // localStorage blocked (private mode) — still show the bar
+  }
+
+  // Show the bar
+  bar.hidden = false;
+
+  // Close button
+  const closeBtn = document.getElementById('welcomeBarClose');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      bar.classList.add('is-closing');
+      try {
+        localStorage.setItem(STORAGE_KEY, Date.now().toString());
+      } catch (e) {}
+      setTimeout(() => { bar.hidden = true; }, 300);
+    });
+  }
+
+  // Copy code button
+  const copyBtn = bar.querySelector('.welcome-bar-copy');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      const code = copyBtn.dataset.copy || '';
+      const done = () => {
+        copyBtn.textContent = 'Copied';
+        copyBtn.classList.add('is-copied');
+        if (window.showToast) {
+          window.showToast('Code copied: ' + code, { type: 'success', duration: 2200 });
+        }
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+          copyBtn.classList.remove('is-copied');
+        }, 2500);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(done).catch(done);
+      } else {
+        // Fallback for older browsers
+        const tmp = document.createElement('textarea');
+        tmp.value = code;
+        document.body.appendChild(tmp);
+        tmp.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(tmp);
+        done();
+      }
+    });
+  }
+})();
+
+// ============================================
+// COPY TO CLIPBOARD
+// ============================================
+document.querySelectorAll('[data-copy]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    navigator.clipboard.writeText(btn.dataset.copy);
+    showToast('Copied to clipboard', { type: 'success', duration: 2000 });
+  });
+});

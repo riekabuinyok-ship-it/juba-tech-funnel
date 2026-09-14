@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" fill="none">
+  <!-- Book base -->
+  <path d="M10 32 C10 28 14 26 20 26 L48 26 L48 84 L20 84 C14 84 10 86 10 90 Z" fill="#e63946"/>
+  <path d="M48 26 L76 26 C82 26 86 28 86 32 L86 90 C86 86 82 84 76 84 L48 84 Z" fill="#c42c39"/>
+  <rect x="46" y="26" width="4" height="58" fill="#ffffff" opacity="0.35"/>
+
+  <!-- Page lines -->
+  <rect x="16" y="40" width="24" height="2.5" rx="1.25" fill="#ffffff" opacity="0.55"/>
+  <rect x="16" y="50" width="24" height="2.5" rx="1.25" fill="#ffffff" opacity="0.55"/>
+  <rect x="56" y="40" width="24" height="2.5" rx="1.25" fill="#ffffff" opacity="0.55"/>
+  <rect x="56" y="50" width="24" height="2.5" rx="1.25" fill="#ffffff" opacity="0.55"/>
+
+  <!-- Graduation cap -->
+  <path d="M14 18 L48 2 L82 18 L48 34 Z" fill="#1f2933"/>
+  <line x1="82" y1="18" x2="82" y2="38" stroke="#f4a261" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="82" cy="40" r="3.5" fill="#f4a261"/>
+
+  <!-- South Sudan star -->
+  <path d="M48 -8 L51 -1 L58.5 -1 L52.5 3.7 L54.8 10.5 L48 6.2 L41.2 10.5 L43.5 3.7 L37.5 -1 L45 -1 Z" fill="#f2be3e"/>
+</svg>
