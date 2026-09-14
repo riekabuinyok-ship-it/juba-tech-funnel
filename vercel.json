@@ -1,9 +1,10 @@
 {
   "functions": {
-    "api/*.php": { "runtime": "vercel-php@0.7.4" }
+    "api/index.php": { "runtime": "vercel-php@0.7.4" }
   },
   "rewrites": [
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/uploads/(.*)", "destination": "/uploads/$1" }
+    { "source": "/uploads/(.*)", "destination": "/uploads/$1" },
+    { "source": "/(.*)", "destination": "/api/index.php" }
   ]
 }
